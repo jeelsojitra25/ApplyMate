@@ -1,86 +1,73 @@
-Build a cross-browser extension called "ApplyMate Clipper" that automatically detects and saves job applications to the ApplyMate app.
+# ApplyMate 🚀
 
-TECH STACK:
-- Manifest V3 (works in Chrome, Edge, Brave)
-- Firefox compatible (Manifest V2 fallback)
-- Vanilla JavaScript only, no frameworks
+An AI-powered job application tracker built with React, Node.js, Express, and PostgreSQL.
 
-FUNCTIONALITY:
-The extension should:
-1. Detect when user is on a job posting page on these sites:
-   - linkedin.com/jobs
-   - indeed.com
-   - glassdoor.com
-   - ca.indeed.com
-   - workday.com
-   - lever.co
-   - greenhouse.io
-   - myworkdayjobs.com
-   - any URL containing /careers/ or /jobs/
+## Features
 
-2. Show a floating button "Save to ApplyMate" on detected job pages
+- 📊 Track all your job applications in one place
+- 🤖 AI Resume Matcher — see how well your resume matches a job description
+- ✉️ AI Cover Letter Generator — generate tailored cover letters instantly
+- 📧 AI Follow-up Email Writer — never miss a follow-up
+- 📈 Dashboard with live stats — Applied, Interviewing, Offers, Rejected
+- 🔐 Secure JWT authentication
 
-3. When clicked, automatically extract:
-   - Company name
-   - Job title/role
-   - Job URL (current page URL)
-   - Today's date as applied_date
-   - Follow up date (7 days from today automatically)
+## Tech Stack
 
-4. Show a small popup to confirm the extracted data before saving, 
-   with fields the user can edit if extraction was wrong
+**Frontend:** React, React Router, Axios
 
-5. Send a POST request to:
-   POST https://your-render-backend-url.com/api/applications
-   Headers: { Authorization: Bearer TOKEN }
-   Body: { company, role, status: "Applied", applied_date, follow_up_date, job_url }
+**Backend:** Node.js, Express.js, PostgreSQL
 
-6. Show success/error notification after saving
+**AI:** Groq API (Llama 3.3)
 
-TOKEN MANAGEMENT:
-- Extension should have a settings page where user pastes their JWT token from ApplyMate
-- Store token securely using chrome.storage.sync
-- Show "Not connected" state if no token is set
+**Auth:** JWT, bcryptjs
 
-FILE STRUCTURE:
-applymate-extension/
-├── manifest.json
-├── background.js
-├── content.js          ← injected into job pages
-├── popup.html          ← main popup UI
-├── popup.js
-├── settings.html       ← where user enters their token
-├── settings.js
-├── icons/
-│   ├── icon16.png
-│   ├── icon48.png
-│   └── icon128.png
-└── styles/
-    └── content.css     ← styles for floating button
+## Getting Started
 
-EXTRACTION LOGIC:
-For LinkedIn: 
-  - Company: .jobs-unified-top-card__company-name
-  - Title: .jobs-unified-top-card__job-title
+### Prerequisites
+- Node.js
+- PostgreSQL
 
-For Indeed:
-  - Company: [data-testid="inlineHeader-companyName"]
-  - Title: .jobsearch-JobInfoHeader-title
+### Installation
 
-For others: 
-  - Try meta tags: og:title, og:site_name
-  - Fallback to page title and domain name
+1. Clone the repo
+   git clone https://github.com/jeelsojitra25/ApplyMate.git
 
-IMPORTANT:
-- Must work without user logging into extension separately
-- Token based auth only
-- Clean minimal UI matching ApplyMate colors (#4299e1 blue, white background)
-- Show ApplyMate logo in popup
-- After saving successfully, update the button to show "Saved!" in green
-- Handle errors gracefully with clear messages
+2. Install backend dependencies
+   cd appymate && npm install
+
+3. Install frontend dependencies
+   cd frontend && npm install
+
+4. Set up environment variables in backend/.env
+   PORT=3000
+   DB_USER=postgres
+   DB_HOST=localhost
+   DB_NAME=applymate
+   DB_PASSWORD=yourpassword
+   DB_PORT=5432
+   GROQ_API_KEY=yourapikey
+   JWT_SECRET=yoursecret
+
+5. Run the database schema
+   psql -U postgres -d applymate -f database/schema.sql
+
+6. Start backend
+   npm run dev
+
+7. Start frontend
+   cd frontend && npm start
+
+## Screenshots
 
 - <img width="1470" height="956" alt="image" src="https://github.com/user-attachments/assets/bcc4fd2c-616e-4878-8b16-fff300ef2085" />
 
 <img width="1470" height="956" alt="image" src="https://github.com/user-attachments/assets/f8cae471-8efe-4ae8-a4cc-14aa6b639326" />
 
-![Uploading image.png…]()
+![Uploading image.png…]() 
+
+
+## Author
+
+Jeel Sojitra — [LinkedIn](https://linkedin.com/in/yourlinkedin) — jeelsojitra2512@gmail.com
+
+
