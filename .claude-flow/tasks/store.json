@@ -1,0 +1,70 @@
+{
+  "tasks": {
+    "task-1772740414327-4cyplc": {
+      "taskId": "task-1772740414327-4cyplc",
+      "type": "optimization",
+      "description": "Add database indexes on applications table: CREATE INDEX idx_applications_user_id ON applications(user_id); CREATE INDEX idx_applications_status ON applications(status); CREATE INDEX idx_applications_created_at ON applications(created_at DESC); CREATE INDEX idx_applications_user_status ON applications(user_id, status);",
+      "priority": "high",
+      "status": "pending",
+      "progress": 0,
+      "assignedTo": [],
+      "tags": [],
+      "createdAt": "2026-03-05T19:53:34.327Z",
+      "startedAt": null,
+      "completedAt": null
+    },
+    "task-1772740479307-mnm5nd": {
+      "taskId": "task-1772740479307-mnm5nd",
+      "type": "refactoring",
+      "description": "\"Refactor backend/server.js into modular architecture with separate routes/, controllers/, services/ folders\"",
+      "priority": "critical",
+      "status": "pending",
+      "progress": 0,
+      "assignedTo": [],
+      "tags": [],
+      "createdAt": "2026-03-05T19:54:39.307Z",
+      "startedAt": null,
+      "completedAt": null
+    },
+    "task-1772740503505-h5yj9i": {
+      "taskId": "task-1772740503505-h5yj9i",
+      "type": "implementation",
+      "description": "\"Add Joi input validation on all POST and PUT routes for applications and auth endpoints\"",
+      "priority": "high",
+      "status": "pending",
+      "progress": 0,
+      "assignedTo": [],
+      "tags": [],
+      "createdAt": "2026-03-05T19:55:03.505Z",
+      "startedAt": null,
+      "completedAt": null
+    },
+    "task-1772740525891-fv6845": {
+      "taskId": "task-1772740525891-fv6845",
+      "type": "security",
+      "description": "\"Add express-rate-limit middleware on /api/ai endpoints - 30 requests per 15 minute window\"",
+      "priority": "high",
+      "status": "pending",
+      "progress": 0,
+      "assignedTo": [],
+      "tags": [],
+      "createdAt": "2026-03-05T19:55:25.891Z",
+      "startedAt": null,
+      "completedAt": null
+    },
+    "task-1772740556073-4ud77d": {
+      "taskId": "task-1772740556073-4ud77d",
+      "type": "implementation",
+      "description": "\"Add centralized error handling with AppError class and global error middleware\"",
+      "priority": "normal",
+      "status": "pending",
+      "progress": 0,
+      "assignedTo": [],
+      "tags": [],
+      "createdAt": "2026-03-05T19:55:56.073Z",
+      "startedAt": null,
+      "completedAt": null
+    }
+  },
+  "version": "3.0.0"
+}

@@ -18,3 +18,9 @@ CREATE TABLE applications(
     notes TEXT,
     created_at TIMESTAMP DEFAULT NOW()
 );
+
+-- Indexes for common query patterns
+CREATE INDEX idx_applications_user_id ON applications(user_id);
+CREATE INDEX idx_applications_status ON applications(status);
+CREATE INDEX idx_applications_created_at ON applications(created_at DESC);
+CREATE INDEX idx_applications_user_status ON applications(user_id, status);

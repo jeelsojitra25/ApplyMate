@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -21,10 +21,10 @@ const Login = () => {
     setLoading(true);
     setError('');
     try {
-      const url = isRegister
-        ? 'http://localhost:3000/api/auth/register'
-        : 'http://localhost:3000/api/auth/login';
-      const response = await axios.post(url, formData);
+      const endpoint = isRegister
+        ? '/api/auth/register'
+        : '/api/auth/login';
+      const response = await api.post(endpoint, formData);
       login(response.data.token, response.data.user);
       navigate('/dashboard');
     } catch (err) {

@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import AddApplicationModal from '../components/AddApplicationModal';
 import EditApplicationModal from '../components/EditApplicationModal';
 import AIModal from '../components/AIModal';
+import KanbanBoard from '../components/KanbanBoard';
 
 const STATUS_CONFIG = {
   Applied:      { color: '#3b82f6', badge: 'badge-applied',      icon: '📝' },
@@ -25,7 +27,7 @@ const getInitials = (name = '') =>
   name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
 
 const Dashboard = () => {
-  const { token, user, logout } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { addToast } = useToast();
 
@@ -36,14 +38,15 @@ const Dashboard = () => {
   const [editApp, setEditApp] = useState(null);
   const [aiApp, setAiApp] = useState(null);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
+  const [viewMode, setViewMode] = useState('table');
 
   const notifRef = useRef(null);
-  const headers = { Authorization: `Bearer ${token}` };
-
   /* ─── Data Fetching ─── */
   const fetchApplications = async () => {
     try {
-      const res = await axios.get('http://localhost:3000/api/applications', { headers });
+      const res = await api.get('/api/applications');
       setApplications(res.data);
     } catch {
       addToast('Failed to load applications', 'error');
@@ -54,7 +57,7 @@ const Dashboard = () => {
 
   const fetchStats = async () => {
     try {
-      const res = await axios.get('http://localhost:3000/api/applications/stats', { headers });
+      const res = await api.get('/api/applications/stats');
       setStats(res.data);
     } catch {
       // silently fail — stats are supplementary
@@ -66,6 +69,12 @@ const Dashboard = () => {
     fetchStats();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /* ─── Dark mode ─── */
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+    localStorage.setItem('theme', darkMode ? 'dark' : 'light');
+  }, [darkMode]);
 
   /* ─── Close notifications on outside click ─── */
   useEffect(() => {
@@ -93,14 +102,15 @@ const Dashboard = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Delete this application?')) return;
     try {
-      await axios.delete(`http://localhost:3000/api/applications/${id}`, { headers });
+      await api.delete(`/api/applications/${id}`);
       setApplications((prev) => prev.filter((a) => a.id !== id));
       fetchStats();
       addToast('Application deleted', 'info');
     } catch {
       addToast('Failed to delete application', 'error');
+    } finally {
+      setConfirmDeleteId(null);
     }
   };
 
@@ -130,16 +140,6 @@ const Dashboard = () => {
     greetingHour < 12 ? 'Good morning' :
     greetingHour < 17 ? 'Good afternoon' : 'Good evening';
 
-  /* ─── Loading screen ─── */
-  if (loading) {
-    return (
-      <div className="loading-screen">
-        <div className="spinner" />
-        <p>Loading your dashboard…</p>
-      </div>
-    );
-  }
-
   return (
     <div>
       {/* ── Navbar ── */}
@@ -150,6 +150,11 @@ const Dashboard = () => {
         </div>
 
         <div className="navbar-right">
+          {/* Dark mode toggle */}
+          <button className="navbar-theme-btn" onClick={() => setDarkMode(v => !v)} title="Toggle dark mode">
+            {darkMode ? '\u2600\uFE0F' : '\uD83C\uDF19'}
+          </button>
+
           {/* Notification bell */}
           <div className="navbar-notification-wrap" ref={notifRef}>
             <button
@@ -243,34 +248,18 @@ const Dashboard = () => {
             {/* Pipeline chart */}
             <div className="analytics-card">
               <p className="analytics-title">Application Pipeline</p>
-              <div className="pipeline-bar">
-                {total > 0 ? (
-                  pipelineSegments.map((seg) =>
-                    seg.value > 0 ? (
-                      <div
-                        key={seg.key}
-                        className="pipeline-segment"
-                        style={{
-                          width: `${(seg.value / total) * 100}%`,
-                          background: seg.color,
-                        }}
-                        title={`${seg.key}: ${seg.value}`}
-                      />
-                    ) : null
-                  )
-                ) : (
-                  <div className="pipeline-segment pipeline-empty" />
-                )}
-              </div>
-              <div className="pipeline-legend">
-                {pipelineSegments.map((seg) => (
-                  <div key={seg.key} className="legend-item">
-                    <span className="legend-dot" style={{ background: seg.color }} />
-                    <span>{seg.key}</span>
-                    <span className="legend-value">{seg.value}</span>
-                  </div>
-                ))}
-              </div>
+              <ResponsiveContainer width="100%" height={160}>
+                <BarChart data={pipelineSegments}>
+                  <XAxis dataKey="key" tick={{ fontSize: 12 }} />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+                  <Tooltip />
+                  <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                    {pipelineSegments.map((seg, idx) => (
+                      <Cell key={idx} fill={seg.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
             </div>
 
             {/* Follow-up reminders */}
@@ -323,15 +312,31 @@ const Dashboard = () => {
                 Your Applications
                 <span className="table-count">{applications.length}</span>
               </div>
-              <button
-                className="btn btn-primary btn-sm"
-                onClick={() => setShowAddModal(true)}
-              >
-                + Add Application
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div className="view-toggle">
+                  <button
+                    className={`view-toggle-btn ${viewMode === 'table' ? 'active' : ''}`}
+                    onClick={() => setViewMode('table')}
+                  >
+                    Table
+                  </button>
+                  <button
+                    className={`view-toggle-btn ${viewMode === 'kanban' ? 'active' : ''}`}
+                    onClick={() => setViewMode('kanban')}
+                  >
+                    Kanban
+                  </button>
+                </div>
+                <button
+                  className="btn btn-primary btn-sm"
+                  onClick={() => setShowAddModal(true)}
+                >
+                  + Add Application
+                </button>
+              </div>
             </div>
 
-            {applications.length === 0 ? (
+            {!loading && applications.length === 0 ? (
               <div className="empty-state">
                 <span className="empty-state-icon">📋</span>
                 <h3>No applications yet</h3>
@@ -343,6 +348,13 @@ const Dashboard = () => {
                   + Add First Application
                 </button>
               </div>
+            ) : viewMode === 'kanban' ? (
+              <KanbanBoard
+                applications={applications}
+                onEdit={setEditApp}
+                onDelete={handleDelete}
+                onAI={setAiApp}
+              />
             ) : (
               <div className="table-wrapper">
                 <table>
@@ -358,7 +370,13 @@ const Dashboard = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {applications.map((app) => (
+                    {loading ? (
+                      Array.from({ length: 5 }).map((_, i) => (
+                        <tr key={`skel-${i}`}>
+                          <td colSpan="7"><div className="skeleton" style={{ height: '20px', borderRadius: '4px' }} /></td>
+                        </tr>
+                      ))
+                    ) : applications.map((app) => (
                       <tr key={app.id}>
                         <td className="td-company">{app.company}</td>
                         <td className="td-role">{app.role}</td>
@@ -396,13 +414,30 @@ const Dashboard = () => {
                             >
                               🤖 AI
                             </button>
-                            <button
-                              className="btn-table-delete"
-                              onClick={() => handleDelete(app.id)}
-                              title="Delete"
-                            >
-                              🗑
-                            </button>
+                            {confirmDeleteId === app.id ? (
+                              <>
+                                <button
+                                  className="btn-table-delete"
+                                  onClick={() => handleDelete(app.id)}
+                                >
+                                  Confirm
+                                </button>
+                                <button
+                                  className="btn btn-ghost btn-sm"
+                                  onClick={() => setConfirmDeleteId(null)}
+                                >
+                                  Cancel
+                                </button>
+                              </>
+                            ) : (
+                              <button
+                                className="btn-table-delete"
+                                onClick={() => setConfirmDeleteId(app.id)}
+                                title="Delete"
+                              >
+                                🗑
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>

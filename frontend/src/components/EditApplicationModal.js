@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
-import axios from 'axios';
-import { useAuth } from '../context/AuthContext';
+import api from '../utils/api';
 
 const EditApplicationModal = ({ application, onClose, onSuccess }) => {
-  const { token } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -30,11 +28,7 @@ const EditApplicationModal = ({ application, onClose, onSuccess }) => {
     setLoading(true);
     setError('');
     try {
-      await axios.put(
-        `http://localhost:3000/api/applications/${application.id}`,
-        formData,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.put(`/api/applications/${application.id}`, formData);
       onSuccess();
       onClose();
     } catch (err) {

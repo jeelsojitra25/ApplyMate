@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
-import { useAuth } from '../context/AuthContext';
+import api from '../utils/api';
 
 const TABS = [
   { id: 'match',       label: '📊 Resume Match'    },
@@ -10,7 +9,6 @@ const TABS = [
 ];
 
 const AIModal = ({ application, onClose }) => {
-  const { token } = useAuth();
   const [activeTab, setActiveTab] = useState('match');
   const [resume, setResume] = useState('');
   const [jobDescription, setJobDescription] = useState('');
@@ -18,19 +16,13 @@ const AIModal = ({ application, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const headers = { Authorization: `Bearer ${token}` };
-
   const resetResult = () => { setResult(null); setCopied(false); };
 
   const handleMatch = async () => {
     setLoading(true);
     resetResult();
     try {
-      const res = await axios.post(
-        'http://localhost:3000/api/ai/match',
-        { resume, jobDescription },
-        { headers }
-      );
+      const res = await api.post('/api/ai/match', { resume, jobDescription });
       setResult({ type: 'match', data: res.data });
     } catch {
       setResult({ type: 'error', data: 'AI request failed. Please try again.' });
@@ -43,11 +35,7 @@ const AIModal = ({ application, onClose }) => {
     setLoading(true);
     resetResult();
     try {
-      const res = await axios.post(
-        'http://localhost:3000/api/ai/cover-letter',
-        { resume, jobDescription, company: application.company, role: application.role },
-        { headers }
-      );
+      const res = await api.post('/api/ai/cover-letter', { resume, jobDescription, company: application.company, role: application.role });
       setResult({ type: 'coverLetter', data: res.data.coverLetter });
     } catch {
       setResult({ type: 'error', data: 'AI request failed. Please try again.' });
@@ -63,11 +51,7 @@ const AIModal = ({ application, onClose }) => {
       const daysSince = Math.floor(
         (new Date() - new Date(application.applied_date)) / (1000 * 60 * 60 * 24)
       );
-      const res = await axios.post(
-        'http://localhost:3000/api/ai/follow-up',
-        { company: application.company, role: application.role, daySinceApplied: daysSince, notes: application.notes },
-        { headers }
-      );
+      const res = await api.post('/api/ai/follow-up', { company: application.company, role: application.role, daySinceApplied: daysSince, notes: application.notes });
       setResult({ type: 'followUp', data: res.data.email });
     } catch {
       setResult({ type: 'error', data: 'AI request failed. Please try again.' });
@@ -80,11 +64,7 @@ const AIModal = ({ application, onClose }) => {
     setLoading(true);
     resetResult();
     try {
-      const res = await axios.post(
-        'http://localhost:3000/api/ai/suggestions',
-        { resume },
-        { headers }
-      );
+      const res = await api.post('/api/ai/suggestions', { resume });
       setResult({ type: 'suggestions', data: res.data });
     } catch {
       setResult({ type: 'error', data: 'AI request failed. Please try again.' });

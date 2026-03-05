@@ -1,33 +1,32 @@
-const express = require('express')
-const cors = require('cors')
-
 require('dotenv').config({ path: __dirname + '/.env' })
 
+const express = require('express')
+const cors = require('cors')
+const helmet = require('helmet')
+const errorHandler = require('./utils/errorHandler')
+const authRoutes = require('./routes/auth')
+const applicationRoutes = require('./routes/applications')
+const aiRoutes = require('./routes/ai')
 
-const aiRoutes=require('./routes/ai')
-const authRoutes =require('./routes/auth')
+const app = express()
 
-const applicationRoutes =require('./routes/applications')
-
-const app=express()
-
-
-//middleware
-app.use(cors())
+app.use(helmet())
+app.use(cors({
+    origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : 'http://localhost:3001',
+}))
 app.use(express.json())
-app.use('/api/ai',aiRoutes)
 
-//Route
-app.use('/api/auth',authRoutes)
-app.use('/api/applications',applicationRoutes)
-//Test route    
-app.get('/',(req,res)=>{
-    res.json({message:'Applymate API is running!'})
+app.use('/api/auth', authRoutes)
+app.use('/api/applications', applicationRoutes)
+app.use('/api/ai', aiRoutes)
+
+app.get('/', (req, res) => {
+    res.json({ message: 'Applymate API is running!' })
 })
 
+app.use(errorHandler)
 
-//Start server
-const PORT=process.env.PORT || 3000
+const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
+    console.log(`Server running on port ${PORT}`)
 })
