@@ -3,3 +3,6 @@ node_modules
 .DS_Store
 .swarm/
 .claude-flow/
+.DS_Store
+.swarm/
+.claude-flow/
